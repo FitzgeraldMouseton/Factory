@@ -1,0 +1,156 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.openapi.generator' version '7.3.0'
+}
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    swaggerCoreVersion = '1.6.10'
+    swaggerAnnotationsVersion = '2.2.8'
+    jacksonDatabindNullableVersion = '0.2.2'
+    validationApiVersion = '2.0.1.Final'
+    springdocOpenapiUiVersion = '1.6.9'
+    commonsCollections4Version = '4.4'
+    commonsTextVersion = '1.11.0'
+    jetbrainsAnnotationsVersion = '23.0.0'
+    jodaTimeVersion = '2.12.2'
+    springCloudOpenfeignCoreVersion = '2.2.5.RELEASE'
+    mapstructVersion = '1.5.1.Final'
+    modelMapperVerion = '3.1.1'
+    springCloudOpenfeignStarterVersion = '3.1.2'
+
+    dep = [
+            swagger            : [
+                    "io.swagger:swagger-annotations:$swaggerCoreVersion",
+                    "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion",
+                    "org.openapitools:jackson-databind-nullable:$jacksonDatabindNullableVersion",
+                    "javax.validation:validation-api:$validationApiVersion",
+                    "org.springdoc:springdoc-openapi-ui:$springdocOpenapiUiVersion",
+                    "com.fasterxml.jackson.core:jackson-annotations",
+                    "com.fasterxml.jackson.core:jackson-databind"
+            ],
+            springWeb          : [
+                    "org.springframework.boot:spring-boot-starter-web",
+                    "org.springframework.boot:spring-boot-starter-test"
+            ],
+            springReactive     : [
+                    "org.springframework.boot:spring-boot-starter-webflux",
+                    "io.projectreactor:reactor-test"
+            ],
+            utils              : [
+                    "org.apache.commons:commons-collections4:$commonsCollections4Version",
+                    "org.apache.commons:commons-text:$commonsTextVersion",
+                    "org.jetbrains:annotations:$jetbrainsAnnotationsVersion",
+                    "joda-time:joda-time:$jodaTimeVersion"
+            ],
+            mapStruct          : [
+                    "org.mapstruct:mapstruct:$mapstructVersion",
+                    "org.mapstruct:mapstruct-processor:$mapstructVersion"
+            ],
+            modelMapper        : "org.modelmapper:modelmapper:$modelMapperVerion",
+            springDataCommons  : "org.springframework.data:spring-data-commons",
+            springOpenFeignCore: "org.springframework.cloud:spring-cloud-openfeign-core:$springCloudOpenfeignCoreVersion",
+            springFeignClient  : "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudOpenfeignStarterVersion",
+            protobuf : [
+                    "com.google.protobuf:protoc:3.17.2",
+                    "io.grpc:protoc-gen-grpc-java:1.40.0"
+            ]
+    ]
+}
+
+dependencies {
+//    implementation dep.swagger
+//    implementation dep.springWeb
+//    implementation dep.utils
+//    implementation dep.springDataCommons
+//    implementation dep.springOpenFeignCore
+    implementation "io.swagger:swagger-annotations:$swaggerCoreVersion"
+    implementation"io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion"
+    implementation "org.openapitools:jackson-databind-nullable:$jacksonDatabindNullableVersion"
+    implementation "javax.validation:validation-api:$validationApiVersion"
+    implementation "org.springdoc:springdoc-openapi-ui:$springdocOpenapiUiVersion"
+    implementation "com.fasterxml.jackson.core:jackson-annotations"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+
+//    implementation 'org.openapitools:openapi-generator:7.3.0'
+//    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+//    implementation 'javax.validation:validation-api:2.0.1.Final'
+//    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.build {
+    dependsOn('clean', 'openApiGenerate')
+}
+
+tasks.bootJar {
+    enabled(false)
+}
+
+
+
+openApiGenerate {
+    inputSpec = "$rootDir/src/main/resources/static/api-docs.yml".toString()
+    generatorName = "spring"
+    outputDir = "$buildDir/generated".toString()
+    apiPackage = "ru.example.java.spring.api"
+    modelPackage = "ru.example.java.spring.model"
+    generateApiTests = false
+    generateModelTests = false
+    typeMappings = [
+            "OffsetDateTime": "Instant"
+    ]
+    importMappings = [
+            "java.time.OffsetDateTime": "java.time.Instant"
+    ]
+    configOptions = [
+            sourceFolder           : "src/main/java/",
+            useTags                : "true",
+            java8                  : "false",
+            dateLibrary            : "java8",
+            hideGenerationTimestamp: "true",
+            serializableModel      : "true",
+            booleanGetterPrefix    : "is",
+            openApiNullable        : "true",
+            skipDefaultInterface   : "true",
+            interfaceOnly          : "true",
+            generateSupportingFiles: "false",
+            delegatePattern        : "false",
+            useBeanValidation      : "true",
+            localVarPrefix         : "localVar"
+    ]
+}
+
+//sourceSets {
+//    main {
+//        java {
+//            srcDir("$buildDir/generated".toString())
+//        }
+//    }
+//}

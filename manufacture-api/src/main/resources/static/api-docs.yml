@@ -1,0 +1,538 @@
+openapi: 3.0.3
+info:
+  title: Robots Factory
+  description: maybe later
+  version: 1.0.0
+servers:
+  - url: http://localhost/api/v1
+tags:
+  - name: schema
+    description: Everything about robot's schema
+  - name: robot
+    description: Everything about robots
+  - name: employee
+    description: Everything about employees
+  - name: store
+    description: Where robots are stored
+paths:
+  /schema:
+    post:
+      tags:
+        - schema
+      summary: Create robot's schema
+      description: Create robot's schema
+      operationId: createSchema
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RobotSchemaRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotSchemaResponse'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Robot not found
+        '422':
+          description: Validation exception
+  /robot:
+    put:
+      tags:
+        - robot
+      summary: Update an existing robot
+      description: Update an existing robot by Id
+      operationId: updateRobot
+      requestBody:
+        description: Update an existing robot in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RobotRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotRequest'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Robot not found
+        '422':
+          description: Validation exception
+  /robot/create:
+    post:
+      tags:
+        - robot
+      summary: Assemble a new robot
+      description: Assemble a new robot
+      operationId: addRobot
+      requestBody:
+        description: Assemble a new robot
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RobotRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotRequest'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+  /robot/findByStatus:
+    get:
+      tags:
+        - robot
+      summary: Finds Robot by status
+      operationId: findRobotByStatus
+      parameters:
+        - name: id
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: string
+            default: DONE
+            enum:
+              - DESIGNED
+              - CONSTRUCTED
+              - BROKEN
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RobotFullResponse'
+        '400':
+          description: Invalid status value
+  /robot/{robotId}:
+    get:
+      tags:
+        - robot
+      summary: Find robot by ID
+      description: Returns a single robot
+      operationId: getRobotById
+      parameters:
+        - name: robotId
+          in: path
+          description: ID of robot to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RobotFullResponse'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Robot not found
+      security:
+        - api_key: []
+    delete:
+      tags:
+        - robot
+      summary: Delete a robot
+      description: delete a robot
+      operationId: deleteRobot
+      parameters:
+        - name: robotId
+          in: path
+          description: Robot id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '400':
+          description: Invalid robot value
+  /robor/{robotId}/uploadImage:
+    post:
+      tags:
+        - robot
+      summary: uploads an image
+      description: ''
+      operationId: uploadFile
+      parameters:
+        - name: robotId
+          in: path
+          description: ID of robot to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: additionalMetadata
+          in: query
+          description: Additional Metadata
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelApiResponse'
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+  /store/inventory:
+    get:
+      tags:
+        - store
+      summary: Returns robot inventories by status
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+  /employee:
+    post:
+      tags:
+        - user
+      summary: Create employee
+      description: This can only be done by the logged in employee.
+      operationId: createEmployee
+      requestBody:
+        description: Created employee object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: false
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+  /employee/{username}:
+    get:
+      tags:
+        - employee
+      summary: Get employee by user name
+      description: ''
+      operationId: getEmployeeByName
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: Employee not found
+    put:
+      tags:
+        - employee
+      summary: Update employee
+      description: This can only be done by the logged in user.
+      operationId: updateEmployee
+      parameters:
+        - name: username
+          in: path
+          description: name that need to be deleted
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent employee in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        default:
+          description: successful operation
+    delete:
+      tags:
+        - employee
+      summary: Delete employee
+      description: This can only be done by the logged in user.
+      operationId: deleteEmployee
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+components:
+  schemas:
+    StoreResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        capacity:
+          type: integer
+          format: int64
+        complete:
+          type: boolean
+    RobotCategoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    EmployeeRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+          enum:
+            - DEVELOPER
+            - ENGINEER
+            - WORKER
+    EmployeeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          enum:
+            - DEVELOPER
+            - ENGINEER
+            - WORKER
+    RobotSchemaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        developerId:
+          type: integer
+          format: int64
+        details:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    RobotSchemaResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: datetime
+        developerId:
+          type: integer
+          format: int64
+        details:
+          type: array
+          items:
+            type: integer
+            format: int64
+    DetailResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+
+    RobotRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: integer
+          format: int64
+        employee:
+          type: integer
+          format: int64
+        store:
+          type: integer
+          format: int64
+        status:
+          type: string
+          description: robot status
+          enum:
+            - CONSTRUCTED
+            - BROKEN
+
+    RobotFullResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/RobotCategoryResponse'
+        employee:
+          $ref: '#/components/schemas/EmployeeResponse'
+        store:
+          $ref: '#/components/schemas/StoreResponse'
+        status:
+          type: string
+          description: robot status
+          enum:
+            - DESIGNED
+            - CONSTRUCTED
+            - BROKEN
+
+    ModelApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  requestBodies:
+    EmployeeArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/EmployeeRequest'
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
